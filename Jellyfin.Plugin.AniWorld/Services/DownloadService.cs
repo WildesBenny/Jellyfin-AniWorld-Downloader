@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -133,6 +134,25 @@ public class DownloadService
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Clears all completed, failed, and cancelled downloads from the list.
+    /// </summary>
+    /// <returns>Number of cleared tasks.</returns>
+    public int ClearCompleted()
+    {
+        var toRemove = _activeTasks.Values
+            .Where(t => t.Status is DownloadStatus.Completed or DownloadStatus.Failed or DownloadStatus.Cancelled)
+            .Select(t => t.Id)
+            .ToList();
+
+        foreach (var id in toRemove)
+        {
+            _activeTasks.TryRemove(id, out _);
+        }
+
+        return toRemove.Count;
     }
 
     private async Task ExecuteDownloadAsync(DownloadTask task, CancellationToken externalToken)
@@ -383,6 +403,7 @@ public class DownloadTask
     public DateTime? CompletedAt { get; set; }
 
     /// <summary>Gets or sets the cancellation token source.</summary>
+    [JsonIgnore]
     public CancellationTokenSource? CancellationSource { get; set; }
 }
 

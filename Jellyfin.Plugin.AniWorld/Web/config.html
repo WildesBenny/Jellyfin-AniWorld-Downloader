@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AniWorld Downloader</title>
+    <title>AniWorld Downloader Settings</title>
 </head>
 <body>
-    <div id="AniWorldConfigPage" data-role="page" class="page type-interior pluginConfigurationPage"
-         data-require="emby-input,emby-button,emby-select">
+    <div id="AniWorldConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select">
         <div data-role="content">
             <div class="content-primary">
                 <form id="AniWorldConfigForm">
@@ -13,58 +12,46 @@
                         <h2 class="sectionTitle">AniWorld Downloader Settings</h2>
                     </div>
 
-                    <div class="inputContainer">
-                        <label class="inputLabel" for="txtDownloadPath">Download Path</label>
-                        <input is="emby-input" type="text" id="txtDownloadPath"
-                               placeholder="/path/to/anime/library" />
-                        <div class="fieldDescription">
-                            Path where downloaded anime files will be saved. Should point to your Jellyfin anime library folder.
+                    <div class="verticalSection">
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="txtDownloadPath">Download Path</label>
+                            <input is="emby-input" type="text" id="txtDownloadPath"
+                                   placeholder="/media/anime" />
+                            <div class="fieldDescription">
+                                Base directory for downloaded anime files. Files will be organized as:
+                                <code>DownloadPath/SeriesName/Season XX/SeriesName - SXXEXX.mkv</code>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="inputContainer">
-                        <label class="inputLabel" for="selPreferredLanguage">Preferred Language</label>
-                        <select is="emby-select" id="selPreferredLanguage" class="emby-select-withcolor">
-                            <option value="1">German Dub</option>
-                            <option value="2">English Sub (Japanese Audio)</option>
-                            <option value="3">German Sub (Japanese Audio)</option>
-                        </select>
-                        <div class="fieldDescription">
-                            Default language for downloads.
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="selLanguage">Preferred Language</label>
+                            <select is="emby-select" id="selLanguage">
+                                <option value="1">German Dub (Deutsch)</option>
+                                <option value="2">English Sub (Eng Sub)</option>
+                                <option value="3">German Sub (Ger Sub)</option>
+                            </select>
+                            <div class="fieldDescription">Default language for downloads.</div>
                         </div>
-                    </div>
 
-                    <div class="inputContainer">
-                        <label class="inputLabel" for="selPreferredProvider">Preferred Provider</label>
-                        <select is="emby-select" id="selPreferredProvider" class="emby-select-withcolor">
-                            <option value="VOE">VOE</option>
-                            <option value="Vidoza">Vidoza</option>
-                            <option value="Vidmoly">Vidmoly</option>
-                        </select>
-                        <div class="fieldDescription">
-                            Default video provider. VOE is recommended (most reliable).
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="selProvider">Preferred Provider</label>
+                            <select is="emby-select" id="selProvider">
+                                <option value="VOE">VOE (recommended)</option>
+                                <option value="Vidmoly">Vidmoly</option>
+                                <option value="Vidoza">Vidoza</option>
+                            </select>
+                            <div class="fieldDescription">Default streaming provider. VOE usually has the best quality and availability.</div>
                         </div>
-                    </div>
 
-                    <div class="inputContainer">
-                        <label class="inputLabel" for="txtNamingTemplate">File Naming Template</label>
-                        <input is="emby-input" type="text" id="txtNamingTemplate" />
-                        <div class="fieldDescription">
-                            Template for naming downloaded files. Available variables: {title}, {year}, {season}, {episode}.
-                            Default: {title} ({year})/{title} S{season}E{episode}.mkv
-                        </div>
-                    </div>
-
-                    <div class="inputContainer">
-                        <label class="inputLabel" for="txtMaxDownloads">Max Concurrent Downloads</label>
-                        <input is="emby-input" type="number" id="txtMaxDownloads" min="1" max="5" />
-                        <div class="fieldDescription">
-                            Maximum number of simultaneous downloads (1-5).
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="txtMaxDownloads">Max Concurrent Downloads</label>
+                            <input is="emby-input" type="number" id="txtMaxDownloads" min="1" max="5" />
+                            <div class="fieldDescription">Maximum number of simultaneous downloads (1-5). Lower values are recommended to avoid rate limiting.</div>
                         </div>
                     </div>
 
                     <div>
-                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                        <button is="emby-button" type="submit" class="raised button-submit block">
                             <span>Save</span>
                         </button>
                     </div>

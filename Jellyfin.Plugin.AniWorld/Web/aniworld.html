@@ -3,78 +3,129 @@
 <head>
     <title>AniWorld Downloader</title>
     <style>
-        .aniworld-container { max-width: 1200px; margin: 0 auto; padding: 1em; }
-        .aniworld-search-box { display: flex; gap: 0.5em; margin-bottom: 1.5em; }
-        .aniworld-search-box input { flex: 1; }
-        .aniworld-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1em; }
-        .aniworld-card { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 1em; cursor: pointer; transition: background 0.2s; }
-        .aniworld-card:hover { background: rgba(255,255,255,0.1); }
-        .aniworld-card h3 { margin: 0 0 0.5em; font-size: 1.1em; }
-        .aniworld-card p { margin: 0; opacity: 0.7; font-size: 0.9em; }
+        .aw { max-width: 1200px; margin: 0 auto; padding: 1em; font-family: inherit; }
 
-        .aniworld-series-header { display: flex; gap: 1.5em; margin-bottom: 1.5em; }
-        .aniworld-cover { width: 200px; border-radius: 8px; flex-shrink: 0; }
-        .aniworld-series-info h2 { margin: 0 0 0.5em; }
-        .aniworld-genres { display: flex; gap: 0.5em; flex-wrap: wrap; margin-bottom: 0.5em; }
-        .aniworld-genre { background: rgba(0,164,220,0.3); padding: 0.2em 0.6em; border-radius: 4px; font-size: 0.8em; }
+        /* Tabs */
+        .aw-tabs { display: flex; gap: 0; border-bottom: 2px solid rgba(255,255,255,0.1); margin-bottom: 1.5em; }
+        .aw-tab { padding: 0.7em 1.5em; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; font-size: 0.95em; opacity: 0.7; transition: all 0.2s; }
+        .aw-tab:hover { opacity: 1; }
+        .aw-tab.active { border-bottom-color: #00a4dc; color: #00a4dc; opacity: 1; }
+        .aw-tab .aw-badge { background: #00a4dc; color: #fff; border-radius: 10px; padding: 0.1em 0.5em; font-size: 0.75em; margin-left: 0.4em; }
 
-        .aniworld-seasons { display: flex; gap: 0.5em; flex-wrap: wrap; margin-bottom: 1em; }
-        .aniworld-season-btn { padding: 0.4em 1em; border-radius: 4px; background: rgba(255,255,255,0.1); border: none; color: inherit; cursor: pointer; }
-        .aniworld-season-btn.active { background: rgba(0,164,220,0.5); }
+        /* Search */
+        .aw-search { display: flex; gap: 0.5em; margin-bottom: 1.5em; }
+        .aw-search input { flex: 1; padding: 0.6em 1em; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; color: inherit; font-size: 1em; outline: none; }
+        .aw-search input:focus { border-color: #00a4dc; }
 
-        .aniworld-episodes { display: flex; flex-direction: column; gap: 0.5em; }
-        .aniworld-episode { display: flex; align-items: center; justify-content: space-between; padding: 0.8em 1em; background: rgba(255,255,255,0.05); border-radius: 6px; }
-        .aniworld-episode-info { flex: 1; }
-        .aniworld-episode-num { font-weight: bold; margin-right: 0.8em; opacity: 0.6; }
-        .aniworld-episode-actions { display: flex; gap: 0.5em; }
+        /* Buttons */
+        .aw-btn { padding: 0.5em 1em; border-radius: 6px; border: none; cursor: pointer; font-size: 0.85em; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.4em; }
+        .aw-btn-primary { background: #00a4dc; color: white; }
+        .aw-btn-primary:hover { background: #0090c4; }
+        .aw-btn-success { background: #4caf50; color: white; }
+        .aw-btn-success:hover { background: #45a049; }
+        .aw-btn-danger { background: #f44336; color: white; }
+        .aw-btn-danger:hover { background: #e53935; }
+        .aw-btn-secondary { background: rgba(255,255,255,0.1); color: inherit; }
+        .aw-btn-secondary:hover { background: rgba(255,255,255,0.18); }
+        .aw-btn-sm { padding: 0.3em 0.7em; font-size: 0.8em; }
+        .aw-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        .aniworld-btn { padding: 0.4em 0.8em; border-radius: 4px; border: none; cursor: pointer; font-size: 0.85em; }
-        .aniworld-btn-primary { background: #00a4dc; color: white; }
-        .aniworld-btn-primary:hover { background: #0090c4; }
-        .aniworld-btn-secondary { background: rgba(255,255,255,0.15); color: inherit; }
+        /* Search results grid */
+        .aw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1em; }
+        .aw-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 1.2em; cursor: pointer; transition: all 0.2s; }
+        .aw-card:hover { background: rgba(255,255,255,0.08); border-color: rgba(0,164,220,0.3); transform: translateY(-1px); }
+        .aw-card h3 { margin: 0 0 0.5em; font-size: 1.05em; color: #fff; }
+        .aw-card p { margin: 0; opacity: 0.6; font-size: 0.85em; line-height: 1.4; }
 
-        .aniworld-downloads { margin-top: 1.5em; }
-        .aniworld-download-item { display: flex; align-items: center; gap: 1em; padding: 0.8em; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 0.5em; }
-        .aniworld-download-progress { width: 100px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
-        .aniworld-download-bar { height: 100%; background: #00a4dc; transition: width 0.3s; }
-        .aniworld-status { padding: 0.2em 0.5em; border-radius: 3px; font-size: 0.8em; }
-        .aniworld-status-downloading { background: rgba(0,164,220,0.3); }
-        .aniworld-status-completed { background: rgba(76,175,80,0.3); }
-        .aniworld-status-failed { background: rgba(244,67,54,0.3); }
-        .aniworld-status-queued { background: rgba(255,152,0,0.3); }
+        /* Series detail */
+        .aw-series { display: flex; gap: 2em; margin-bottom: 1.5em; }
+        .aw-cover { width: 220px; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        .aw-meta h2 { margin: 0 0 0.5em; font-size: 1.5em; }
+        .aw-meta p { opacity: 0.7; line-height: 1.6; margin: 0.5em 0; }
+        .aw-genres { display: flex; gap: 0.4em; flex-wrap: wrap; margin: 0.8em 0; }
+        .aw-genre { background: rgba(0,164,220,0.2); border: 1px solid rgba(0,164,220,0.3); padding: 0.2em 0.6em; border-radius: 12px; font-size: 0.78em; }
 
-        .aniworld-back-btn { margin-bottom: 1em; }
-        .aniworld-empty { text-align: center; padding: 3em; opacity: 0.5; }
-        .aniworld-tabs { display: flex; gap: 0; border-bottom: 2px solid rgba(255,255,255,0.1); margin-bottom: 1em; }
-        .aniworld-tab { padding: 0.6em 1.2em; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
-        .aniworld-tab.active { border-bottom-color: #00a4dc; color: #00a4dc; }
+        /* Season pills */
+        .aw-seasons { display: flex; gap: 0.4em; flex-wrap: wrap; margin-bottom: 1.2em; }
+        .aw-season { padding: 0.45em 1.1em; border-radius: 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: inherit; cursor: pointer; font-size: 0.85em; transition: all 0.2s; }
+        .aw-season:hover { background: rgba(0,164,220,0.15); border-color: rgba(0,164,220,0.3); }
+        .aw-season.active { background: rgba(0,164,220,0.3); border-color: #00a4dc; color: #fff; }
+
+        /* Season actions bar */
+        .aw-season-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8em; padding: 0.5em 0; }
+        .aw-season-actions .aw-ep-count { opacity: 0.5; font-size: 0.85em; }
+
+        /* Episode list */
+        .aw-episodes { display: flex; flex-direction: column; gap: 0.4em; }
+        .aw-ep { display: flex; align-items: center; padding: 0.8em 1em; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; transition: all 0.15s; }
+        .aw-ep:hover { background: rgba(255,255,255,0.06); }
+        .aw-ep-num { font-weight: 600; min-width: 3em; opacity: 0.5; font-size: 0.9em; }
+        .aw-ep-title { flex: 1; font-size: 0.9em; }
+        .aw-ep-actions { display: flex; gap: 0.4em; }
+        .aw-ep-providers { padding: 0.8em 1em; margin-top: -1px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06); border-radius: 0 0 8px 8px; }
+        .aw-ep-providers .aw-lang-group { margin-bottom: 0.5em; }
+        .aw-ep-providers .aw-lang-label { font-weight: 600; font-size: 0.8em; opacity: 0.6; margin-bottom: 0.3em; }
+        .aw-ep-providers .aw-provider-btns { display: flex; gap: 0.3em; flex-wrap: wrap; }
+
+        /* Downloads */
+        .aw-dl { display: flex; flex-direction: column; gap: 0.5em; }
+        .aw-dl-item { display: flex; align-items: center; gap: 1em; padding: 1em; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; }
+        .aw-dl-info { flex: 1; min-width: 0; }
+        .aw-dl-info strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .aw-dl-info small { opacity: 0.5; }
+        .aw-dl-progress { width: 120px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+        .aw-dl-bar { height: 100%; background: #00a4dc; transition: width 0.4s ease; border-radius: 3px; }
+        .aw-dl-pct { min-width: 3em; text-align: right; font-size: 0.85em; opacity: 0.7; }
+        .aw-status { padding: 0.2em 0.6em; border-radius: 4px; font-size: 0.75em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .aw-status-downloading { background: rgba(0,164,220,0.25); color: #4dc9f6; }
+        .aw-status-completed { background: rgba(76,175,80,0.25); color: #81c784; }
+        .aw-status-failed { background: rgba(244,67,54,0.25); color: #ef5350; }
+        .aw-status-queued { background: rgba(255,152,0,0.25); color: #ffb74d; }
+        .aw-status-resolving, .aw-status-extracting { background: rgba(156,39,176,0.25); color: #ce93d8; }
+        .aw-status-cancelled { background: rgba(158,158,158,0.25); color: #bdbdbd; }
+        .aw-dl-error { color: #ef5350; font-size: 0.8em; margin-top: 0.3em; }
+        .aw-dl-actions { display: flex; gap: 0.3em; margin-top: 1em; }
+
+        /* Utility */
+        .aw-empty { text-align: center; padding: 3em; opacity: 0.4; }
+        .aw-empty-icon { font-size: 2.5em; margin-bottom: 0.3em; }
+        .aw-back { margin-bottom: 1.2em; }
+        .aw-spinner { display: inline-block; width: 1em; height: 1em; border: 2px solid rgba(255,255,255,0.2); border-top-color: #00a4dc; border-radius: 50%; animation: aw-spin 0.8s linear infinite; }
+        @keyframes aw-spin { to { transform: rotate(360deg); } }
+        .aw-loading { display: flex; align-items: center; justify-content: center; gap: 0.8em; padding: 2em; opacity: 0.6; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .aw-series { flex-direction: column; align-items: center; text-align: center; }
+            .aw-cover { width: 160px; }
+            .aw-genres { justify-content: center; }
+            .aw-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
     <div id="AniWorldPage" data-role="page" class="page type-interior">
         <div data-role="content">
-            <div class="content-primary aniworld-container">
+            <div class="content-primary aw">
                 <div class="sectionTitleContainer flex align-items-center">
                     <h2 class="sectionTitle">AniWorld Downloader</h2>
                 </div>
 
-                <div class="aniworld-tabs">
-                    <div class="aniworld-tab active" data-tab="search" onclick="AniWorld.switchTab('search')">Search</div>
-                    <div class="aniworld-tab" data-tab="downloads" onclick="AniWorld.switchTab('downloads')">Downloads</div>
+                <div class="aw-tabs">
+                    <div class="aw-tab active" data-tab="search" onclick="AW.switchTab('search')">🔍 Search</div>
+                    <div class="aw-tab" data-tab="downloads" onclick="AW.switchTab('downloads')">⬇️ Downloads <span id="aw-dl-badge" class="aw-badge" style="display:none">0</span></div>
                 </div>
 
                 <div id="searchTab">
-                    <div class="aniworld-search-box">
-                        <input is="emby-input" type="text" id="aniworld-search-input"
-                               placeholder="Search anime on aniworld.to..." />
-                        <button is="emby-button" class="raised aniworld-btn aniworld-btn-primary"
-                                onclick="AniWorld.search()">Search</button>
+                    <div class="aw-search">
+                        <input type="text" id="aw-search-input" placeholder="Search anime on aniworld.to..." />
+                        <button class="aw-btn aw-btn-primary" onclick="AW.search()">Search</button>
                     </div>
-                    <div id="aniworld-content"></div>
+                    <div id="aw-content"></div>
                 </div>
 
                 <div id="downloadsTab" style="display:none">
-                    <div id="aniworld-downloads"></div>
+                    <div id="aw-downloads"></div>
                 </div>
             </div>
         </div>

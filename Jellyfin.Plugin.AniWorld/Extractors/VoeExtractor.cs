@@ -13,12 +13,17 @@ namespace Jellyfin.Plugin.AniWorld.Extractors;
 /// <summary>
 /// Extracts direct video URLs from VOE embeds.
 /// Port of the Python VOE extractor from AniWorld-Downloader.
+/// VOE uses a JS-based redirect (voe.sx → randomdomain.com) and encodes
+/// the stream URL in a JSON script block with a multi-step decode chain.
 /// </summary>
 public class VoeExtractor : IStreamExtractor
 {
-    private static readonly Regex RedirectPattern = new(@"https?://[^'""<>]+", RegexOptions.Compiled);
+    private static readonly Regex JsRedirectPattern = new(
+        @"window\.location\.href\s*=\s*['""](?<url>https?://[^'""]+)['""]",
+        RegexOptions.Compiled);
+
     private static readonly Regex ScriptJsonPattern = new(
-        @"<script\s+type=[""']application/json[""']>(.*?)</script>",
+        @"<script\s+type=[""']application/json[""']>\s*(?<json>\[""[^<]+?\])\s*</script>",
         RegexOptions.Singleline | RegexOptions.Compiled);
 
     private static readonly string[] JunkParts = { "@$", "^^", "~@", "%?", "*~", "!!", "#&" };
@@ -49,12 +54,16 @@ public class VoeExtractor : IStreamExtractor
         {
             _logger.LogDebug("Extracting VOE direct link from: {Url}", embedUrl);
 
-            var html = await FetchWithRedirectAsync(embedUrl, cancellationToken).ConfigureAwait(false);
+            var html = await FetchWithJsRedirectAsync(embedUrl, cancellationToken).ConfigureAwait(false);
             var source = ExtractVoeSourceFromHtml(html);
 
             if (source != null)
             {
-                _logger.LogDebug("VOE source extracted: {Source}", source);
+                _logger.LogDebug("VOE source extracted successfully");
+            }
+            else
+            {
+                _logger.LogWarning("Failed to extract VOE source from page");
             }
 
             return source;
@@ -66,20 +75,44 @@ public class VoeExtractor : IStreamExtractor
         }
     }
 
-    private async Task<string> FetchWithRedirectAsync(string url, CancellationToken cancellationToken)
+    private async Task<string> FetchWithJsRedirectAsync(string url, CancellationToken cancellationToken)
     {
         var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         var html = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
-        // VOE often has a redirect page first
-        var redirectMatch = RedirectPattern.Match(html);
-        if (redirectMatch.Success)
+        // VOE uses a JS redirect: voe.sx page contains window.location.href = 'https://randomdomain.com/e/...'
+        // We need to follow this JS redirect manually since HttpClient won't execute JS
+        var hasJsonBlock = ScriptJsonPattern.IsMatch(html);
+        if (!hasJsonBlock)
         {
-            var redirectUrl = redirectMatch.Value;
-            if (redirectUrl != url && redirectUrl.Contains("voe", StringComparison.OrdinalIgnoreCase))
+            // Look for JS redirect to the actual VOE player page
+            var jsRedirects = JsRedirectPattern.Matches(html);
+            foreach (Match match in jsRedirects)
             {
-                response = await _httpClient.GetAsync(redirectUrl, cancellationToken).ConfigureAwait(false);
+                var redirectUrl = match.Groups["url"].Value;
+                if (redirectUrl != url)
+                {
+                    _logger.LogDebug("Following VOE JS redirect: {RedirectUrl}", redirectUrl);
+                    response = await _httpClient.GetAsync(redirectUrl, cancellationToken).ConfigureAwait(false);
+                    response.EnsureSuccessStatusCode();
+                    html = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+                    // Check if this page has the JSON block
+                    if (ScriptJsonPattern.IsMatch(html))
+                    {
+                        return html;
+                    }
+                }
+            }
+
+            // Fallback: look for any URL that might be the actual player
+            var urlPattern = new Regex(@"https?://[a-zA-Z0-9\-]+\.[a-zA-Z]+/e/[a-zA-Z0-9]+", RegexOptions.Compiled);
+            var urlMatch = urlPattern.Match(html);
+            if (urlMatch.Success && urlMatch.Value != url)
+            {
+                _logger.LogDebug("Following VOE fallback redirect: {RedirectUrl}", urlMatch.Value);
+                response = await _httpClient.GetAsync(urlMatch.Value, cancellationToken).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
                 html = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -99,24 +132,39 @@ public class VoeExtractor : IStreamExtractor
 
         foreach (Match match in scriptBlocks)
         {
-            var encoded = match.Groups[1].Value.Trim();
-
-            // Remove surrounding quotes
-            if (encoded.StartsWith("\"", StringComparison.Ordinal) && encoded.EndsWith("\"", StringComparison.Ordinal))
-            {
-                encoded = encoded[1..^1];
-            }
-
-            // Unescape the string
-            encoded = Regex.Unescape(encoded);
+            var rawJson = match.Groups["json"].Value.Trim();
 
             try
             {
+                // The JSON is a string array: ["encoded_string"]
+                // Parse it to extract the encoded string
+                string encoded;
+                using (var doc = JsonDocument.Parse(rawJson))
+                {
+                    if (doc.RootElement.ValueKind == JsonValueKind.Array && doc.RootElement.GetArrayLength() > 0)
+                    {
+                        encoded = doc.RootElement[0].GetString() ?? string.Empty;
+                    }
+                    else if (doc.RootElement.ValueKind == JsonValueKind.String)
+                    {
+                        encoded = doc.RootElement.GetString() ?? string.Empty;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+
+                if (string.IsNullOrEmpty(encoded))
+                {
+                    continue;
+                }
+
                 var decoded = DecodeVoeString(encoded);
                 if (decoded != null)
                 {
-                    using var doc = JsonDocument.Parse(decoded);
-                    if (doc.RootElement.TryGetProperty("source", out var sourceElem))
+                    using var decodedDoc = JsonDocument.Parse(decoded);
+                    if (decodedDoc.RootElement.TryGetProperty("source", out var sourceElem))
                     {
                         return sourceElem.GetString();
                     }

@@ -1,26 +1,24 @@
-const AniWorldConfig = {
+var AniWorldConfig = {
     pluginId: 'e93d1d02-df60-4545-ae3c-7bb87dff024c',
 
-    loadConfig: function () {
+    load: function () {
         Dashboard.showLoadingMsg();
         ApiClient.getPluginConfiguration(this.pluginId).then(function (config) {
             document.getElementById('txtDownloadPath').value = config.DownloadPath || '';
-            document.getElementById('selPreferredLanguage').value = config.PreferredLanguage || '1';
-            document.getElementById('selPreferredProvider').value = config.PreferredProvider || 'VOE';
-            document.getElementById('txtNamingTemplate').value = config.NamingTemplate || '{title} ({year})/{title} S{season}E{episode}.mkv';
+            document.getElementById('selLanguage').value = config.PreferredLanguage || '1';
+            document.getElementById('selProvider').value = config.PreferredProvider || 'VOE';
             document.getElementById('txtMaxDownloads').value = config.MaxConcurrentDownloads || 2;
             Dashboard.hideLoadingMsg();
         });
     },
 
-    saveConfig: function () {
+    save: function () {
         Dashboard.showLoadingMsg();
         ApiClient.getPluginConfiguration(this.pluginId).then(function (config) {
-            config.DownloadPath = document.getElementById('txtDownloadPath').value;
-            config.PreferredLanguage = document.getElementById('selPreferredLanguage').value;
-            config.PreferredProvider = document.getElementById('selPreferredProvider').value;
-            config.NamingTemplate = document.getElementById('txtNamingTemplate').value;
-            config.MaxConcurrentDownloads = parseInt(document.getElementById('txtMaxDownloads').value) || 2;
+            config.DownloadPath = document.getElementById('txtDownloadPath').value.trim();
+            config.PreferredLanguage = document.getElementById('selLanguage').value;
+            config.PreferredProvider = document.getElementById('selProvider').value;
+            config.MaxConcurrentDownloads = parseInt(document.getElementById('txtMaxDownloads').value, 10) || 2;
 
             ApiClient.updatePluginConfiguration(AniWorldConfig.pluginId, config).then(function () {
                 Dashboard.processPluginConfigurationUpdateResult();
@@ -29,10 +27,12 @@ const AniWorldConfig = {
     }
 };
 
-document.getElementById('AniWorldConfigForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    AniWorldConfig.saveConfig();
-    return false;
+document.getElementById('AniWorldConfigPage').addEventListener('pageshow', function () {
+    AniWorldConfig.load();
 });
 
-AniWorldConfig.loadConfig();
+document.getElementById('AniWorldConfigForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    AniWorldConfig.save();
+    return false;
+});

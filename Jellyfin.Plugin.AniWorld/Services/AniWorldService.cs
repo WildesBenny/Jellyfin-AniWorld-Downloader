@@ -56,7 +56,7 @@ public class AniWorldService
         RegexOptions.Compiled);
 
     private static readonly Regex GenrePattern = new(
-        @"<li[^>]*>\s*<a[^>]*href=""/anime/genre/[^""]+""[^>]*>(?<genre>[^<]+)</a>",
+        @"<a[^>]*href=""/genre/[^""]+""[^>]*class=""genreButton[^""]*""[^>]*>(?<genre>[^<]+)</a>",
         RegexOptions.Compiled);
 
     private readonly HttpClient _httpClient;
@@ -243,8 +243,8 @@ public class AniWorldService
         return new EpisodeDetails
         {
             Url = episodeUrl,
-            TitleDe = germanTitle.Success ? germanTitle.Groups["title"].Value.Trim() : null,
-            TitleEn = englishTitle.Success ? englishTitle.Groups["title"].Value.Trim() : null,
+            TitleDe = germanTitle.Success ? System.Net.WebUtility.HtmlDecode(germanTitle.Groups["title"].Value.Trim()) : null,
+            TitleEn = englishTitle.Success ? System.Net.WebUtility.HtmlDecode(englishTitle.Groups["title"].Value.Trim()) : null,
             ProvidersByLanguage = providers,
         };
     }

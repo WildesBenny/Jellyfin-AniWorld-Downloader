@@ -13,11 +13,11 @@ namespace Jellyfin.Plugin.AniWorld.Extractors;
 public class VidmolyExtractor : IStreamExtractor
 {
     private static readonly Regex SourcePattern = new(
-        @"sources\s*:\s*\[\s*\{[^}]*file:\s*""(?<url>[^""]+)""",
+        @"sources\s*:\s*\[\s*\{[^}]*file:\s*['""](?<url>[^'""]+)['""]",
         RegexOptions.Singleline | RegexOptions.Compiled);
 
     private static readonly Regex HlsPattern = new(
-        @"""(?<url>https?://[^""]+\.m3u8[^""]*)""",
+        @"['""](?<url>https?://[^'""]+\.m3u8[^'""]*)['""]",
         RegexOptions.Compiled);
 
     private readonly HttpClient _httpClient;
