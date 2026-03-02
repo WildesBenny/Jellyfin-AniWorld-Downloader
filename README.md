@@ -1,16 +1,22 @@
 # Jellyfin AniWorld Downloader Plugin
 
-A Jellyfin plugin that lets you search and download anime from [aniworld.to](https://aniworld.to) directly within Jellyfin's web UI.
+A Jellyfin plugin that lets you search and download anime from [aniworld.to](https://aniworld.to) directly within Jellyfin's web UI. Fully integrated — no external tools needed.
+
+## Status: ✅ Working
+
+Downloads are fully functional. Tested with Solo Leveling S01E01-E02 via VOE and Vidmoly providers. Files download to proper Jellyfin-compatible naming (`Series Name/Season XX/Series Name - SXXEXX.mkv`).
 
 ## Features
 
-- **Search** - Find anime on aniworld.to from within Jellyfin
-- **Browse** - View series info, seasons, and episode lists
-- **Download** - Download episodes directly to your Jellyfin library
-- **Multiple Providers** - Supports VOE, Vidoza, and Vidmoly
-- **Multiple Languages** - German Dub, English Sub, German Sub
-- **Download Manager** - Track progress and manage active downloads
-- **FFmpeg Integration** - Uses Jellyfin's bundled ffmpeg for HLS downloads
+- **🔍 Search** — Find anime on aniworld.to from within Jellyfin
+- **📺 Browse** — View series info with covers, genres, seasons, and episode lists
+- **⬇️ Single Download** — Download individual episodes with provider/language selection
+- **📦 Batch Download** — Download all episodes in a season with one click
+- **🎛️ Multiple Providers** — VOE (recommended), Vidmoly, Vidoza
+- **🌐 Multiple Languages** — German Dub, English Sub, German Sub
+- **📊 Download Manager** — Real-time progress tracking, cancel, clear completed
+- **🎬 FFmpeg Integration** — Uses Jellyfin's bundled ffmpeg for HLS→MKV conversion
+- **📁 Smart Naming** — Auto-organizes into `Series/Season XX/Series - SXXEXX.mkv`
 
 ## Architecture
 
