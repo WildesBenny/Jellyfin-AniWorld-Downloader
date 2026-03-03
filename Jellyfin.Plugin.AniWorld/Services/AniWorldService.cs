@@ -128,7 +128,7 @@ public class AniWorldService
         var descMatch = DescriptionPattern.Match(html);
 
         var genres = GenrePattern.Matches(html)
-            .Select(m => m.Groups["genre"].Value.Trim())
+            .Select(m => DecodeHtml(m.Groups["genre"].Value.Trim()))
             .Distinct()
             .ToList();
 
@@ -159,10 +159,10 @@ public class AniWorldService
 
         return new SeriesInfo
         {
-            Title = titleMatch.Success ? System.Net.WebUtility.HtmlDecode(titleMatch.Groups["title"].Value.Trim()) : "Unknown",
+            Title = titleMatch.Success ? DecodeHtml(titleMatch.Groups["title"].Value.Trim()) : "Unknown",
             Url = seriesUrl,
             CoverImageUrl = coverUrl,
-            Description = descMatch.Success ? System.Net.WebUtility.HtmlDecode(descMatch.Groups["desc"].Value.Trim()) : string.Empty,
+            Description = descMatch.Success ? DecodeHtml(descMatch.Groups["desc"].Value.Trim()) : string.Empty,
             Genres = genres,
             Seasons = seasons,
             HasMovies = hasMovies,
@@ -243,8 +243,8 @@ public class AniWorldService
         return new EpisodeDetails
         {
             Url = episodeUrl,
-            TitleDe = germanTitle.Success ? System.Net.WebUtility.HtmlDecode(germanTitle.Groups["title"].Value.Trim()) : null,
-            TitleEn = englishTitle.Success ? System.Net.WebUtility.HtmlDecode(englishTitle.Groups["title"].Value.Trim()) : null,
+            TitleDe = germanTitle.Success ? DecodeHtml(germanTitle.Groups["title"].Value.Trim()) : null,
+            TitleEn = englishTitle.Success ? DecodeHtml(englishTitle.Groups["title"].Value.Trim()) : null,
             ProvidersByLanguage = providers,
         };
     }
@@ -274,7 +274,34 @@ public class AniWorldService
 
     private static string StripHtml(string input)
     {
-        return Regex.Replace(input, "<.*?>", string.Empty).Trim();
+        var stripped = Regex.Replace(input, "<.*?>", string.Empty).Trim();
+        return DecodeHtml(stripped);
+    }
+
+    /// <summary>
+    /// Decodes HTML entities, handling double/triple-encoded content.
+    /// Loops until the output stabilizes (no more entities to decode).
+    /// </summary>
+    private static string DecodeHtml(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return input;
+        }
+
+        var decoded = input;
+        for (int i = 0; i < 5; i++)
+        {
+            var next = System.Net.WebUtility.HtmlDecode(decoded);
+            if (next == decoded)
+            {
+                break;
+            }
+
+            decoded = next;
+        }
+
+        return decoded;
     }
 }
 
