@@ -137,7 +137,7 @@
     </style>
 </head>
 <body>
-    <div id="AniWorldPage" data-role="page" class="page type-interior">
+    <div id="AniWorldPage" data-role="page" class="page type-interior" data-controller="__plugin/AniWorldDownloaderJS">
         <div data-role="content">
             <div class="content-primary aw">
                 <div class="sectionTitleContainer flex align-items-center">
@@ -145,15 +145,15 @@
                 </div>
 
                 <div class="aw-tabs">
-                    <div class="aw-tab active" data-tab="search" onclick="AW.switchTab('search')">🔍 Search</div>
-                    <div class="aw-tab" data-tab="downloads" onclick="AW.switchTab('downloads')">⬇️ Downloads <span id="aw-dl-badge" class="aw-badge" style="display:none">0</span></div>
-                    <div class="aw-tab" data-tab="history" onclick="AW.switchTab('history')">📊 History</div>
+                    <div class="aw-tab active" data-tab="search" onclick="window.AW.switchTab('search')">🔍 Search</div>
+                    <div class="aw-tab" data-tab="downloads" onclick="window.AW.switchTab('downloads')">⬇️ Downloads <span id="aw-dl-badge" class="aw-badge" style="display:none">0</span></div>
+                    <div class="aw-tab" data-tab="history" onclick="window.AW.switchTab('history')">📊 History</div>
                 </div>
 
                 <div id="searchTab">
                     <div class="aw-search">
                         <input type="text" id="aw-search-input" placeholder="Search anime on aniworld.to..." />
-                        <button class="aw-btn aw-btn-primary" onclick="AW.search()">Search</button>
+                        <button class="aw-btn aw-btn-primary" onclick="window.AW.search()">Search</button>
                     </div>
                     <div id="aw-content"></div>
                 </div>
@@ -169,7 +169,6 @@
                 </div>
             </div>
         </div>
-        <script src="aniworld.js"></script>
     </div>
 </body>
 </html>

@@ -1,42 +1,42 @@
-var AniWorldConfig = {
-    pluginId: 'e93d1d02-df60-4545-ae3c-7bb87dff024c',
+export default function (view, params) {
+    var pluginId = 'e93d1d02-df60-4545-ae3c-7bb87dff024c';
 
-    load: function () {
+    function loadConfig() {
         Dashboard.showLoadingMsg();
-        ApiClient.getPluginConfiguration(this.pluginId).then(function (config) {
-            document.getElementById('txtDownloadPath').value = config.DownloadPath || '';
-            document.getElementById('selLanguage').value = config.PreferredLanguage || '1';
-            document.getElementById('selProvider').value = config.PreferredProvider || 'VOE';
-            document.getElementById('txtMaxDownloads').value = config.MaxConcurrentDownloads || 2;
-            document.getElementById('txtMaxRetries').value = config.MaxRetries != null ? config.MaxRetries : 3;
-            document.getElementById('chkAutoScan').checked = config.AutoScanLibrary !== false;
+        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+            view.querySelector('#txtDownloadPath').value = config.DownloadPath || '';
+            view.querySelector('#selLanguage').value = config.PreferredLanguage || '1';
+            view.querySelector('#selProvider').value = config.PreferredProvider || 'VOE';
+            view.querySelector('#txtMaxDownloads').value = config.MaxConcurrentDownloads || 2;
+            view.querySelector('#txtMaxRetries').value = config.MaxRetries != null ? config.MaxRetries : 3;
+            view.querySelector('#chkAutoScan').checked = config.AutoScanLibrary !== false;
             Dashboard.hideLoadingMsg();
         });
-    },
+    }
 
-    save: function () {
+    function saveConfig() {
         Dashboard.showLoadingMsg();
-        ApiClient.getPluginConfiguration(this.pluginId).then(function (config) {
-            config.DownloadPath = document.getElementById('txtDownloadPath').value.trim();
-            config.PreferredLanguage = document.getElementById('selLanguage').value;
-            config.PreferredProvider = document.getElementById('selProvider').value;
-            config.MaxConcurrentDownloads = parseInt(document.getElementById('txtMaxDownloads').value, 10) || 2;
-            config.MaxRetries = parseInt(document.getElementById('txtMaxRetries').value, 10) || 0;
-            config.AutoScanLibrary = document.getElementById('chkAutoScan').checked;
+        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+            config.DownloadPath = view.querySelector('#txtDownloadPath').value.trim();
+            config.PreferredLanguage = view.querySelector('#selLanguage').value;
+            config.PreferredProvider = view.querySelector('#selProvider').value;
+            config.MaxConcurrentDownloads = parseInt(view.querySelector('#txtMaxDownloads').value, 10) || 2;
+            config.MaxRetries = parseInt(view.querySelector('#txtMaxRetries').value, 10) || 0;
+            config.AutoScanLibrary = view.querySelector('#chkAutoScan').checked;
 
-            ApiClient.updatePluginConfiguration(AniWorldConfig.pluginId, config).then(function () {
+            ApiClient.updatePluginConfiguration(pluginId, config).then(function () {
                 Dashboard.processPluginConfigurationUpdateResult();
             });
         });
     }
-};
 
-document.getElementById('AniWorldConfigPage').addEventListener('pageshow', function () {
-    AniWorldConfig.load();
-});
+    view.addEventListener('viewshow', function () {
+        loadConfig();
+    });
 
-document.getElementById('AniWorldConfigForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    AniWorldConfig.save();
-    return false;
-});
+    view.querySelector('#AniWorldConfigForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        saveConfig();
+        return false;
+    });
+}
